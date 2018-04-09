@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormWeb", "WebFormWeb\We
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWeb2", "MvcWeb2\MvcWeb2.csproj", "{769C08B9-A980-4E73-BCAE-A52DD552EF18}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWeb3", "MvcWeb3\MvcWeb3.csproj", "{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{769C08B9-A980-4E73-BCAE-A52DD552EF18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{769C08B9-A980-4E73-BCAE-A52DD552EF18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{769C08B9-A980-4E73-BCAE-A52DD552EF18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
