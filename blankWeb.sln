@@ -5,13 +5,15 @@ VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "blankWeb", "blankWeb\blankWeb.csproj", "{7899DCE8-F6B7-4804-88CF-DB69FDE1A327}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWeb", "MvcWeb\MvcWeb.csproj", "{4A08AC09-3337-4121-BA68-180409584351}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWeb_AspIdentity", "MvcWeb\MvcWeb_AspIdentity.csproj", "{4A08AC09-3337-4121-BA68-180409584351}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormWeb", "WebFormWeb\WebFormWeb.csproj", "{1F5F0800-A507-471B-9FB1-7FF22FF0B3D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWeb2", "MvcWeb2\MvcWeb2.csproj", "{769C08B9-A980-4E73-BCAE-A52DD552EF18}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWeb_AspIdentyCustom", "MvcWeb2\MvcWeb_AspIdentyCustom.csproj", "{769C08B9-A980-4E73-BCAE-A52DD552EF18}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWeb3", "MvcWeb3\MvcWeb3.csproj", "{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWeb_AdIdenrity", "MvcWeb3\MvcWeb_AdIdenrity.csproj", "{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWeb_AdIdentyCustom", "MvcWeb_CustomAd\MvcWeb_AdIdentyCustom.csproj", "{421057E7-89EA-4BF4-8EB0-CCB4D7B7E8BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFF57432-A01D-4A6F-BE8D-7CDD2146DF1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{421057E7-89EA-4BF4-8EB0-CCB4D7B7E8BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{421057E7-89EA-4BF4-8EB0-CCB4D7B7E8BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{421057E7-89EA-4BF4-8EB0-CCB4D7B7E8BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{421057E7-89EA-4BF4-8EB0-CCB4D7B7E8BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
