@@ -36,11 +36,13 @@ namespace MvcWeb2
 
     public class AppUser : IUser<string>
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        private string _id = Guid.NewGuid().ToString();
+        private string _userName;
+        private string _password;
 
-        public string UserName { get; set; }
-
-        public string Password { get; set; }
+        public string Id { get => _id; set => _id = value; }
+        public string UserName { get => _userName; set => _userName = value; }
+        public string Password { get => _password; set => _password = value; }
     }
 
     public class AppUserManager : UserManager<AppUser>
@@ -48,6 +50,11 @@ namespace MvcWeb2
         public AppUserManager(IUserStore<AppUser> store)
             : base(store)
         { }
+
+        public AppUserManager Create(IUserStore<AppUser> store)
+        {
+            return new AppUserManager(store);
+        }
     }
 
     public class AppRole : IRole<string>

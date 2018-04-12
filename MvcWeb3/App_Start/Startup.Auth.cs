@@ -32,6 +32,7 @@ namespace MvcWeb3
                     Authority = authority,
                     PostLogoutRedirectUri = postLogoutRedirectUri
                 });
+            
         }
     }
 }
