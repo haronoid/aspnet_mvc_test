@@ -9,6 +9,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Owin;
+using MvcWeb2.Models;
 
 [assembly: OwinStartup(typeof(MvcWeb2.OwinStartUp))]
 namespace MvcWeb2
@@ -18,13 +19,11 @@ namespace MvcWeb2
         public void Configuration(IAppBuilder app)
         {
             // 後から「HttpContext.GetOwinContext().Get」で取り出して使える。
-            app.CreatePerOwinContext<AppUserStore>(() => new AppUserStore());
-            app.CreatePerOwinContext<AppUserManager>((options, context) 
-                => new AppUserManager(context.Get<AppUserStore>()));
-            app.CreatePerOwinContext<AppRoleManager>((options, context) 
-                => new AppRoleManager(context.Get<AppUserStore>()));
-            app.CreatePerOwinContext<AppSignInManager>((options, context) 
-                => new AppSignInManager(context.GetUserManager<AppUserManager>(), context.Authentication));
+            app.CreatePerOwinContext(() => new AppUserStore());
+            app.CreatePerOwinContext<AppUserManager>(AppUserManager.Create);
+            app.CreatePerOwinContext<AppSignInManager>(AppSignInManager.Create);
+
+            app.CreatePerOwinContext<AppRoleManager>(AppRoleManager.Create);
 
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
@@ -34,67 +33,115 @@ namespace MvcWeb2
         }
     }
 
-    public class AppUser : IUser<string>
+    public class WebUser : IUser<string>
     {
         private string _id = Guid.NewGuid().ToString();
         private string _userName;
         private string _password;
+        private string _hashedPassword;
 
         public string Id { get => _id; set => _id = value; }
         public string UserName { get => _userName; set => _userName = value; }
         public string Password { get => _password; set => _password = value; }
+        public string HashedPassword { get => _hashedPassword; set => _hashedPassword = value; }
     }
 
-    public class AppUserManager : UserManager<AppUser>
+    public class AppUserManager : UserManager<WebUser>
     {
-        public AppUserManager(IUserStore<AppUser> store)
+        private IUserStore<WebUser> _store;
+        private AppUserManager(IUserStore<WebUser> store)
             : base(store)
+        {
+            _store = store;
+        }
+
+        public static AppUserManager Create(IdentityFactoryOptions<AppUserManager> options, IOwinContext context)
+        {
+            var store = context.Get<AppUserStore>();
+            return new AppUserManager(store);
+        }
+
+        public override async Task<WebUser> FindAsync(string userName, string password)
+        {
+            var user = await _store.FindByNameAsync(userName);
+            if (user != null)
+            {
+                var result = new PasswordHasher().VerifyHashedPassword(user.HashedPassword, password);
+
+            }
+
+            return user;
+
+        }
+    }
+
+    public class AppSignInManager : SignInManager<WebUser, string>
+    {
+        private AppSignInManager(UserManager<WebUser, string> userManager, IAuthenticationManager authenticationManager)
+            : base(userManager, authenticationManager)
         { }
 
-        public AppUserManager Create(IUserStore<AppUser> store)
+        public static AppSignInManager Create(IdentityFactoryOptions<AppSignInManager> options, IOwinContext context)
         {
-            return new AppUserManager(store);
+            var manager = context.Get<AppUserManager>();
+            return new AppSignInManager(manager, context.Authentication);
         }
     }
 
     public class AppRole : IRole<string>
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        private string _id = Guid.NewGuid().ToString();
+        private string _name;
 
-        public string Name { get; set ; }
+        public string Id { get => _id; set => _id = value; }
+        public string Name { get => _name; set => _name = value; }
     }
 
     public class AppRoleManager : RoleManager<AppRole>
     {
-        public AppRoleManager(IRoleStore<AppRole, string> store) 
+        private AppRoleManager(IRoleStore<AppRole, string> store) 
             : base(store)
         { }
-    }
 
-    public class AppSignInManager : SignInManager<AppUser, string>
-    {
-        public AppSignInManager(UserManager<AppUser, string> userManager, IAuthenticationManager authenticationManager)
-            : base(userManager, authenticationManager)
-        { }
+        public static AppRoleManager Create(IdentityFactoryOptions<AppRoleManager> options, IOwinContext context)
+        {
+            var store = context.Get<AppUserStore>();
+            return new AppRoleManager(store);
+        }
     }
-
 
     public class AppUserStore : 
-        IUserStore<AppUser>, 
-        IUserStore<AppUser,string>,
-        IUserPasswordStore<AppUser,string>,
-        IUserRoleStore<AppUser, string>,
+        IUserStore<WebUser>, 
+        IUserStore<WebUser,string>,
+        IUserPasswordStore<WebUser,string>,
+        IUserRoleStore<WebUser, string>,
         IRoleStore<AppRole, string>
     {
-        // DBの代わりにダミーデータ設定
-       
-        // ユーザマスタ
-        private static List<AppUser> Users { get; } = new List<AppUser>
-        {
-            new AppUser { Id = "1", UserName = "user1", Password="abc" },
-            new AppUser { Id = "2", UserName = "user2", Password="def" }
-        };
 
+        private LocalDbEntities _dbContext;
+
+        public AppUserStore()
+        {
+            _dbContext = new LocalDbEntities();
+
+            if (_dbContext.AppUser.Count() == 0)
+            {
+                _dbContext.AppUser.Add(new Models.AppUser() {
+                    Id = Guid.NewGuid(),
+                    UserName = "user1",
+                    Password = new PasswordHasher().HashPassword("abc")
+                });
+                _dbContext.AppUser.Add(new Models.AppUser()
+                {
+                    Id = Guid.NewGuid(),
+                    UserName = "user2",
+                    Password = new PasswordHasher().HashPassword("def")
+                });
+                _dbContext.SaveChanges();
+            }
+
+        }
+        
         // ロールマスタ
         private static List<AppRole> Roles { get; } = new List<AppRole>
         {
@@ -109,7 +156,7 @@ namespace MvcWeb2
             Tuple.Create("2","999")
         };
 
-        public Task AddToRoleAsync(AppUser user, string roleName)
+        public Task AddToRoleAsync(WebUser user, string roleName)
         {
             var role = Roles.FirstOrDefault(x => x.Name == roleName);
             if (role == null) { throw new InvalidOperationException(); }
@@ -123,9 +170,18 @@ namespace MvcWeb2
             return Task.Delay(0);
         }
 
-        public Task CreateAsync(AppUser user)
+        public Task CreateAsync(WebUser user)
         {
-            Users.Add(user);
+
+            Models.AppUser newUser = new Models.AppUser()
+            {
+                Id = Guid.NewGuid(),
+                UserName = user.UserName,
+                Password = user.HashedPassword
+            };
+
+            _dbContext.AppUser.Add(newUser);
+
             return Task.Delay(0);
         }
 
@@ -135,9 +191,9 @@ namespace MvcWeb2
             return Task.Delay(0);
         }
 
-        public Task DeleteAsync(AppUser user)
+        public Task DeleteAsync(WebUser user)
         {
-            Users.Remove(Users.First(x => x.Id == user.Id));
+            _dbContext.AppUser.Remove(_dbContext.AppUser.First(x => x.UserName == user.UserName));
             return Task.Delay(0);
         }
 
@@ -151,22 +207,45 @@ namespace MvcWeb2
         {
         }
 
-        public Task<AppUser> FindByIdAsync(string userId)
+        public Task<WebUser> FindByIdAsync(string userId)
         {
-            return Task.FromResult(Users.FirstOrDefault(u => u.Id == userId));
+            WebUser ret = null;
+            var user = _dbContext.AppUser.FirstOrDefault(u => u.UserName == userId);
+            if (user != null)
+            {
+                ret = new WebUser()
+                {
+                    Id = user.Id.ToString(),
+                    UserName = user.UserName,
+                    HashedPassword = user.Password
+                };
+            }
+
+            return Task.FromResult(ret);
         }
 
-        public Task<AppUser> FindByNameAsync(string userName)
+        public Task<WebUser> FindByNameAsync(string userName)
         {
-            return Task.FromResult(Users.FirstOrDefault(u => u.UserName == userName));
+            WebUser ret = null;
+            var user = _dbContext.AppUser.FirstOrDefault(u => u.UserName == userName);
+            if (user != null)
+            {
+                ret = new WebUser()
+                {
+                    Id = user.Id.ToString(),
+                    UserName = user.UserName,
+                    HashedPassword = user.Password
+                };
+            }
+            return Task.FromResult(ret);
         }
 
-        public Task<string> GetPasswordHashAsync(AppUser user)
+        public Task<string> GetPasswordHashAsync(WebUser user)
         {
             return Task.FromResult(new PasswordHasher().HashPassword(user.Password));
         }
 
-        public Task<IList<string>> GetRolesAsync(AppUser user)
+        public Task<IList<string>> GetRolesAsync(WebUser user)
         {
             IList<string> roleNames = UserRoleMap.Where(x => x.Item1 == user.Id)
                 .Select(x => x.Item2)
@@ -176,18 +255,18 @@ namespace MvcWeb2
             return Task.FromResult(roleNames);
         }
 
-        public Task<bool> HasPasswordAsync(AppUser user)
+        public Task<bool> HasPasswordAsync(WebUser user)
         {
             return Task.FromResult(user.Password != null);
         }
 
-        public async Task<bool> IsInRoleAsync(AppUser user, string roleName)
+        public async Task<bool> IsInRoleAsync(WebUser user, string roleName)
         {
             var roles = await this.GetRolesAsync(user);
             return roles.FirstOrDefault(x => x.ToUpper() == roleName.ToUpper()) != null;
         }
 
-        public Task RemoveFromRoleAsync(AppUser user, string roleName)
+        public Task RemoveFromRoleAsync(WebUser user, string roleName)
         {
             var role = Roles.FirstOrDefault(x => x.Name == roleName);
             if (role == null) { return Task.FromResult(default(object)); }
@@ -199,13 +278,13 @@ namespace MvcWeb2
             return Task.Delay(0);
         }
 
-        public Task SetPasswordHashAsync(AppUser user, string passwordHash)
+        public Task SetPasswordHashAsync(WebUser user, string passwordHash)
         {
             user.Password = passwordHash;
             return Task.Delay(0);
         }
 
-        public async Task UpdateAsync(AppUser user)
+        public async Task UpdateAsync(WebUser user)
         {
             var target = await this.FindByIdAsync(user.Id);
             if (target == null) { return; }
